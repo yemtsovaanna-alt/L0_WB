@@ -44,9 +44,6 @@ func (o Order) Validate() []error {
 	if o.Locale == "" {
 		errors = append(errors, fmt.Errorf("order locale required, got: %s", o.Locale))
 	}
-	if o.InternalSignature == "" {
-		errors = append(errors, fmt.Errorf("order internal signature required, got: %s", o.InternalSignature))
-	}
 	if o.CustomerID == "" {
 		errors = append(errors, fmt.Errorf("order customer ID required, got: %s", o.CustomerID))
 	}

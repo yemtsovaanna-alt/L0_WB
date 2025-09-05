@@ -79,6 +79,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.httpServer = &srv
 
+	s.logger.Info("start http server", zap.String("address", address))
 	return srv.ListenAndServe()
 }
 

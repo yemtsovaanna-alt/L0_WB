@@ -49,9 +49,6 @@ func Initialize(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not create new database: %s", err.Error())
 	}
-	if err := database.EnsureSchema(ctx); err != nil {
-		return nil, err
-	}
 
 	// Optional cache warm-up: most recent N orders
 	if cacheConfig.PreloadLimit > 0 {
@@ -68,17 +65,12 @@ func Initialize(ctx context.Context) (*App, error) {
 
 	// Build Kafka bootstrap connection string from env-configured host and port
 	kafkaConnectionString := fmt.Sprintf("%s:%s", kafkaConfig.Host, kafkaConfig.Port)
-	connection := kafkaConnectionString
-	if err != nil {
-		return nil, fmt.Errorf("connect: %s", err.Error())
-	}
-
-	storeService := deliveries.New(store, database, logger)
-	newWorker, err := worker.New(connection, logger)
+	newWorker, err := worker.New(kafkaConnectionString, logger)
 	if err != nil {
 		return nil, fmt.Errorf("could not create new worker: %s", err.Error())
 	}
 
+	storeService := deliveries.New(store, database, logger)
 	ordersHandler := worker.NewOrdersHandler(storeService, logger)
 	err = newWorker.AddWorker("orders", ordersHandler)
 	if err != nil {

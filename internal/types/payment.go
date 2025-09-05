@@ -20,9 +20,6 @@ func (p *Payment) Validate() []error {
 	if p.Transaction == "" {
 		errors = append(errors, fmt.Errorf("payment transaction required, got: %s", p.Transaction))
 	}
-	if p.RequestID == "" {
-		errors = append(errors, fmt.Errorf("payment request ID required, got: %s", p.RequestID))
-	}
 	if p.Currency == "" {
 		errors = append(errors, fmt.Errorf("payment currency required, got: %s", p.Currency))
 	}
@@ -43,9 +40,6 @@ func (p *Payment) Validate() []error {
 	}
 	if p.GoodsTotal == 0 {
 		errors = append(errors, fmt.Errorf("payment goods total required, got: %v", p.GoodsTotal))
-	}
-	if p.CustomFee == 0 {
-		errors = append(errors, fmt.Errorf("payment custom fee required, got: %v", p.CustomFee))
 	}
 	return errors
 }

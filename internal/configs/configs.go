@@ -7,17 +7,17 @@ import (
 )
 
 type ConfigDatabase struct {
-	User     string `envconfig:"L0_WB_DB_USER"`
-	Name     string `envconfig:"L0_WB_DB_NAME"`
-	Password string `envconfig:"L0_WB_DB_PASSWORD"`
-	Host     string `envconfig:"L0_WB_DB_HOST"`
-	Port     string `envconfig:"L0_WB_DB_PORT"`
-	ModeSSL  string `envconfig:"L0_WB_DB_SSL_MODE"`
+	User     string `envconfig:"L0_WB_DB_USER" default:"postgres"`
+	Name     string `envconfig:"L0_WB_DB_NAME" default:"l0_wb"`
+	Password string `envconfig:"L0_WB_DB_PASSWORD" default:"postgres"`
+	Host     string `envconfig:"L0_WB_DB_HOST" default:"localhost"`
+	Port     string `envconfig:"L0_WB_DB_PORT" default:"5432"`
+	ModeSSL  string `envconfig:"L0_WB_DB_SSL_MODE" default:"disable"`
 }
 
 type ConfigKafka struct {
-	Host string `envconfig:"L0_WB_KAFKA_HOST"`
-	Port string `envconfig:"L0_WB_KAFKA_PORT"`
+	Host string `envconfig:"L0_WB_KAFKA_HOST" default:"localhost"`
+	Port string `envconfig:"L0_WB_KAFKA_PORT" default:"9092"`
 }
 
 type ConfigCache struct {

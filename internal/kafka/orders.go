@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/yemtsovaanna-alt/L0_WB/internal/types"
 	"go.uber.org/zap"
@@ -29,14 +30,15 @@ func (o *OrdersHandler) Handle(ctx context.Context, message []byte) error {
 		return nil
 	}
 	var newOrder = types.Order{}
+
 	err := json.Unmarshal(message, &newOrder)
 	if err != nil {
 		o.logger.Error("could not unmarshal a message", zap.Error(err))
 		return nil
 	}
 
-	if errors := newOrder.Validate(); errors != nil {
-		o.logger.Error("could not validate a message", zap.Error(err))
+	if errs := newOrder.Validate(); errs != nil {
+		o.logger.Error("could not validate a message", zap.Error(errors.Join(errs...)))
 		return nil
 	}
 

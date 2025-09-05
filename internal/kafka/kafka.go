@@ -48,6 +48,7 @@ func (k *Kafka) AddWorker(topic string, handler Handler) error {
 
 func (k *Kafka) Start(ctx context.Context) error {
 	wg := sync.WaitGroup{}
+	k.logger.Info("start kafka consumer", zap.String("connect", k.connect))
 
 	for sub, handler := range k.subs {
 		wg.Add(1)
