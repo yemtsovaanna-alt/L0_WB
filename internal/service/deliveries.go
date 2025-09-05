@@ -17,6 +17,7 @@ type Memory interface {
 
 type Database interface {
 	SaveOrUpdate(ctx context.Context, order types.Order, rawOrder []byte) error
+	GetByID(ctx context.Context, id string) ([]byte, error)
 	GetAll(ctx context.Context) ([]types.Message, error)
 }
 
@@ -34,7 +35,6 @@ func New(store *memory.Store, database *persistent.Database, logger *zap.Logger)
 	}
 }
 func (d *Deliverer) SaveOrUpdate(ctx context.Context, order types.Order, rawOrder []byte) error {
-	d.store.Set(order.Uid, rawOrder)
 	err := d.db.SaveOrUpdate(ctx, order, rawOrder)
 	if err != nil {
 		d.logger.Error("database", zap.Error(err))
@@ -44,10 +44,14 @@ func (d *Deliverer) SaveOrUpdate(ctx context.Context, order types.Order, rawOrde
 }
 
 func (d *Deliverer) GetMessageById(id string) ([]byte, error) {
-	order, found := d.store.Get(id)
-	if !found {
-		d.logger.Error("wrong message id", zap.String("id", id))
+	if order, found := d.store.Get(id); found {
+		return order, nil
+	}
+	raw, err := d.db.GetByID(context.Background(), id)
+	if err != nil {
+		d.logger.Error("message not found", zap.String("id", id), zap.Error(err))
 		return nil, fmt.Errorf("message not found")
 	}
-	return order, nil
+	d.store.Set(id, raw)
+	return raw, nil
 }

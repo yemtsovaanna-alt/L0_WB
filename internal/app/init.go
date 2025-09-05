@@ -29,11 +29,15 @@ func Initialize(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	cacheConfig, err := configs.NewConfigCache()
+	if err != nil {
+		return nil, err
+	}
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, fmt.Errorf("could not create new logger: %s", err.Error())
 	}
-	store := memory.New()
+	store := memory.New(cacheConfig.Size)
 	dbConnectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		dbConfig.User,
 		dbConfig.Password,
@@ -45,10 +49,21 @@ func Initialize(ctx context.Context) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not create new database: %s", err.Error())
 	}
+	if err := database.EnsureSchema(ctx); err != nil {
+		return nil, err
+	}
 
-	err = loadOrdersFromDB(ctx, database, store, logger)
-	if err != nil {
-		return nil, fmt.Errorf("could not load orders from db: %s", err.Error())
+	// Optional cache warm-up: most recent N orders
+	if cacheConfig.PreloadLimit > 0 {
+		recent, err := database.GetRecent(ctx, cacheConfig.PreloadLimit)
+		if err != nil {
+			logger.Error("could not preload recent orders", zap.Error(err))
+		} else {
+			for _, m := range recent {
+				store.Set(m.Id, m.Data)
+			}
+			logger.Info("preloaded recent orders", zap.Int("count", len(recent)))
+		}
 	}
 
 	// Build Kafka bootstrap connection string from env-configured host and port
@@ -93,18 +108,4 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	return errGroup.Wait()
-}
-
-func loadOrdersFromDB(ctx context.Context, db *persistent.Database, store *memory.Store, logger *zap.Logger) error {
-	allMessages, err := db.GetAll(ctx)
-	if err != nil {
-		logger.Error("database", zap.Error(err))
-		return fmt.Errorf("could not get all stream messages: %s", err.Error())
-	}
-
-	for _, message := range allMessages {
-		store.Set(message.Id, message.Data)
-	}
-	logger.Info("all stream messages loaded")
-	return nil
 }
