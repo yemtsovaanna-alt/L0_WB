@@ -51,7 +51,8 @@ func Initialize(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("could not load orders from db: %s", err.Error())
 	}
 
-	kafkaConnectionString := fmt.Sprintf("localhost", kafkaConfig.Port)
+	// Build Kafka bootstrap connection string from env-configured host and port
+	kafkaConnectionString := fmt.Sprintf("%s:%s", kafkaConfig.Host, kafkaConfig.Port)
 	connection := kafkaConnectionString
 	if err != nil {
 		return nil, fmt.Errorf("connect: %s", err.Error())

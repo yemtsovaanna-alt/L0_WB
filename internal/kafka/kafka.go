@@ -25,6 +25,7 @@ func New(connect string, logger *zap.Logger) (*Kafka, error) {
 	return &Kafka{
 		connect: connect,
 		logger:  logger,
+		subs:    make(map[*kafka.Consumer]Handler),
 	}, nil
 }
 
